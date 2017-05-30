@@ -1,0 +1,7 @@
+---
+- name: Ensure key packages are installed
+  pkg: name={{ item }} 
+  with_items: 
+    - vim-tiny
+    - tmux
+    - htop
