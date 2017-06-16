@@ -29,25 +29,31 @@ Initial configuration done manually; subsequent config done using Ansible.
 1. Attach an Ethernet cable and USB keyboard to the hub
 1. Power on the Pi
 1. Post-boot, log in as `root` (password: `root`)
+1. Rename the `freebsd` user as something more sensible (`sa_will`)
+    ```csh
+    vipw  # then replace freebsd with sa_will
+    mv /home/freebsd /home/sa_will
+    mv /var/mail/freebsd /var/mail/sa_will
+    vigr  # then replace freebsd with sa_will
 1. The `sshd` service is enabled by default; bring it down until user passwords have been changed from their defaults:
     ```csh
     service sshd stop
     ```
-1. Change the `root` and `freebsd` users' passwords:
+1. Change the `root` and `sa_will` users' passwords:
     ```csh
-    for u in root freebsd; do
+    for u in root sa_will; do
         passwd $u
     done
+    ```
+1. Ensure that the DHCP client syncronously picks up an address for the `ue0` interface at boot; the following needs to be in `/etc/rc.conf`:
+    ```
+    ifconfig_ue0="SYNCDHCP"
+    service netif restart
     ```
 1. Check that an address has been acquired via DHCP and DNS name resolution is working:
     ```csh
     ifconfig  # shows Ethernet interface as device `ue0`
     ping -c 1 www.last.fm
-    ```
-1. If not, try restarting all network interfaces and starting the DHCP client:
-    ```csh
-    service netif restart
-    dhclient ue0
     ```
 1. Set the hostname and keymap in `/etc/rc.conf` (safely using the `sysrc` tool):
     ```csh
@@ -59,11 +65,11 @@ Initial configuration done manually; subsequent config done using Ansible.
     ```csh
     service sshd start
     ```
-1. Check if can ssh to the machine by trying to copy a SSH public key to the `freebsd` user's list of authorized keys:
+1. Check if can ssh to the machine by trying to copy a SSH public key to the `sa_will` user's list of authorized keys:
     ```csh
     # From another machine
-    ssh-copy-id -i ~/.ssh/id_rsa.pub -P ??? freebsd@spud
-    ssh -P ??? freebsd@spud
+    ssh-copy-id -i ~/.ssh/id_rsa.pub -P ??? sa_will@spud
+    ssh -P ??? sa_will@spud
     ```
 1. Disable password authentication by ensuring that `ChallengeResponseAuthentication no` is present in `/etc/ssh/sshd_config` then
     ```csh
@@ -89,15 +95,24 @@ Initial configuration done manually; subsequent config done using Ansible.
     service ntpd start
     date
     ```
-1. Install bash and set it as as the `freebsd` user's shell
+1. Install bash and set it as as the `sa_will` user's shell
     ```csh
     pkg install bash
     echo 'fdesc /dev/fd  fdescfs  rw 0 0' >> /etc/fstab
     mount -a
-    chpass -s /usr/local/bin/bash freebsd
-    su - freebsd -c 'echo $SHELL'
+    chpass -s /usr/local/bin/bash sa_will
+    su - sa_will -c 'echo $SHELL'
     ```
-
+1. Install sudo (needed for remote config using Ansible; couldn't get `become_method=su` to work)
+    ```csh
+    pkg install sudo
+    ```
+1. Ensure that `sa_will` can become root and can run anything with sudo (after supplying a password):
+    ```csh
+    pw usermod sa_will -G wheel
+    visudo
+    # Ensure that '%wheel ALL=(ALL) ALL' is not commented out
+    ```
 
 ## Ansible
 
@@ -106,13 +121,13 @@ Initial configuration done manually; subsequent config done using Ansible.
 Testing using
 
 ```
-ansible-playbook --inventory=inventory.ini --private-key=${HOME}/.ssh/id_rsa --become --ask-become-pass --become-method=su --user=freebsd -vvvvv playbook.yml
+ansible-playbook --inventory=inventory.ini --private-key=${HOME}/.ssh/id_rsa --become --ask-become-pass --become-method=sudo --user=sa_will playbook.yml
 ```
 
 and an `inventory.ini` containing
 
 ```
 [home-servers]
-spud ansible_connection=ssh ansible_host=????? ansible_become=true ansible_become_method=su ansible_port=?????
+spud ansible_connection=ssh ansible_host=????? ansible_become=true ansible_become_method=sudo ansible_port=?????
 #ansible_connection=paramiko
 ```
