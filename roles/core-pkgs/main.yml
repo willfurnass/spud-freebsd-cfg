@@ -2,6 +2,7 @@
 - name: Ensure key packages are installed
   pkg: name={{ item }} 
   with_items: 
-    - vim-lite
-    - tmux
     - htop
+    - sudo
+    - tmux
+    - vim-lite
