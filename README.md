@@ -121,13 +121,12 @@ Initial configuration done manually; subsequent config done using Ansible.
 Testing using
 
 ```
-ansible-playbook --inventory=inventory.ini --private-key=${HOME}/.ssh/id_rsa --become --ask-become-pass --become-method=sudo --user=sa_will playbook.yml
+ansible-playbook --inventory=inventory.ini --ask-become-pass playbook.yml
 ```
 
 and an `inventory.ini` containing
 
 ```
 [home-servers]
-spud ansible_connection=ssh ansible_host=????? ansible_become=true ansible_become_method=sudo ansible_port=?????
-#ansible_connection=paramiko
+spud ansible_connection=ssh ansible_host=spud ansible_port=65000 become_method=sudo become=true ansible_user=sa_will
 ```
