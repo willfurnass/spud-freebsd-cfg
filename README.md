@@ -135,6 +135,14 @@ Initial configuration done manually; subsequent config done using Ansible.
 
 **TODO**
 
+Need to be able to `become` non-root users.  This can [cause permission issues](https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user) if 
+try to write parameterised modules as temporary files on the remote machine.
+Can overcome this by specifying `pipelining = True` in `ansible.cfg` and ensuring that the `sudo` option `requiretty` is disabled on the target host
+(which is the [default on FreeBSD](https://www.freebsd.org/cgi/man.cgi?query=sudoers&apropos=0&sektion=5&manpath=FreeBSD+8.1-RELEASE+and+Ports&format=html) and 
+[does not](https://unix.stackexchange.com/questions/65774/is-it-okay-to-disable-requiretty) bring about significant security risks).  
+
+Pipelining can also [improve performance](https://docs.ansible.com/ansible/intro_configuration.html#pipelining).
+
 Testing using
 
 ```
