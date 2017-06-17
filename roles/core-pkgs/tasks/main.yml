@@ -1,6 +1,6 @@
 ---
 - name: Ensure key packages are installed
-  pkg: name={{ item }} 
+  pkgng: name={{ item }} state=present
   with_items: 
     - htop
     - sudo
