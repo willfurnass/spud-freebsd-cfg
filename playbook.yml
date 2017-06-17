@@ -1,5 +1,5 @@
----
 - name: Provision tasks
   hosts: home-servers
   roles:
     - {role: core-pkgs, tags: [core-pkgs]}
+    - {role: taskd, tags: [taskd]}
