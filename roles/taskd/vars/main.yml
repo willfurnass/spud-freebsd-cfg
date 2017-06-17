@@ -1,4 +1,3 @@
 ---
-
-generate_script: "/usr/local/share/taskd"
-
+taskd_generate_script: "/usr/local/share/taskd"
+taskd_data: "/var/db/taskd" 

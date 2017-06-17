@@ -1,0 +1,4 @@
+---
+- name: Restart taskd
+  become: yes
+  service: name=taskd state=restarted

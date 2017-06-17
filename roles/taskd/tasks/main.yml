@@ -1,14 +1,57 @@
 ---
 - name: Ensure taskd package installed
+  become: yes
   pkgng: name=taskd state=present
 
-# See taskwarrior.org/docs/taskserver/configure.html for configuration information. 
+- name: Ensure taskd group exists
+  become: yes
+  group:
+    name: taskd
+    state: present
+    system: yes
 
-# After completing configuration to start taskd at system startup add taskd_enable="YES" to rc.conf. 
+- name: Ensure taskd user exists
+  become: yes
+  user:
+    name: taskd
+    state: present
+    group: taskd
+    shell: /usr/sbin/nologin
+    system: yes
+    login_class: daemeon
+
+- name: Ensure data directory exists
+  become: yes
+  file:
+    name: "{{ taskd_data }}"
+    state: directory
+    owner: taskd
+    group: taskd
+    mode: 0700
+    recurse: no
+
+- name: Initialise taskd
+  become: yes
+  become_user: taskd
+  command: taskd init --data "{{ taskd_data }}" creates="{{ taskd_data }}"
+
+  #- name: Ensure taskd starts at boot
+  #  become: yes
+  #  lineinfile:
+  #    path: /etc/rc.conf
+  #    regexp: '^taskd_enable=.*'
+  #    line: 'taskd_enable=YES'
+  #  notify: 
+  #  - Restart taskd
+
+
+
+# See https://taskwarrior.org/docs/taskserver/configure.html for configuration information. 
 # If you configured taskd with a TASKDDATA other than /var/db/taskd you will also need to set taskd_data in rc.conf to that path.
-
+#
 # The rc script will start taskd as the unprivileged user taskd, 
 # this requires that your TASKDDATA directory and /var/log/taskd.log be owned by taskd:taskd. 
 # If you prefer to use another user specify this in rc.conf using taskd_user.
 
 # To add users see: taskwarrior.org/docs/taskserver/user.html
+
